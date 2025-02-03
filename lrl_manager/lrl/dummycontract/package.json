@@ -1,0 +1,26 @@
+{
+  "name": "dummycontract",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.21",
+    "@types/request-ip": "^0.0.41",
+    "express": "^4.18.2",
+    "interface-types": "workspace:*",
+    "request-ip": "^3.3.0"
+  }
+}

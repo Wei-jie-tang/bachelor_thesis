@@ -1,0 +1,8 @@
+curl -X POST http://localhost:3500/token-manage \
+  -H "Content-Type: application/json" \
+  -d '{"containerName": "lrl_manager", "action": "start"}'
+
+sudo docker exec -it lrl_manager bash
+
+docker-compose -f /app/lrl/compose.yaml up --build
+

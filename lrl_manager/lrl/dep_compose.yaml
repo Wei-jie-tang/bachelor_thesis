@@ -1,0 +1,61 @@
+services:
+  dummy_contract:
+    build:
+      context: ./dummycontract
+    env_file:
+      - .env
+  node1:
+    build:
+      context: ./lrl-app
+    environment:
+      - NODE_ADDRESS=0xac9cba1b964b4f8f17bc632cf22db3545c34f552
+      - NODE_IP=node1
+    env_file:
+      - .env
+    ports:
+      - 8001:8546
+  node1-gui:
+    build:
+      context: ./frontend
+    ports:
+      - 3001:3000
+  node2:
+    build:
+      context: ./lrl-app
+    environment:
+      - NODE_ADDRESS=0x10788bde3943485d2579c8916aae6b8778151e25
+      - NODE_IP=node2
+    env_file:
+      - .env
+    ports:
+      - 8002:8546
+  node3:
+    build:
+      context: ./lrl-app
+    environment:
+      - NODE_ADDRESS=0x9bcd8dfa7fa4cb8ea192d181b9b03e305437e7a4
+      - NODE_IP=node3
+    env_file:
+      - .env
+    ports:
+      - 8003:8546
+  node4:
+    build:
+      context: ./lrl-app
+    environment:
+      - NODE_ADDRESS=0xaf0080ae2ac31ca170db207c8c8a3e455b52425b
+      - NODE_IP=node4
+    env_file:
+      - .env
+    ports:
+      - 8004:8546
+  node5:
+    build:
+      context: ./lrl-app
+    environment:
+      - NODE_ADDRESS=0x343dc18a12c0878984dd8ba58cde77c6bdb6f6c3
+      - NODE_IP=node5
+    env_file:
+      - .env
+    ports:
+      - 8005:8546

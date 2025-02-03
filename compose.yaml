@@ -1,0 +1,30 @@
+services:
+  token_generator:
+    build:
+      context: ./token_generator  
+    container_name: token_generator
+    ports:
+      - "3500:3500" 
+    networks:
+      - app_network
+
+  lrl_manager:
+    build:
+      context: ./lrl_manager
+      
+    container_name: lrl_manager
+    ports:
+      - "3600:3600"  
+    networks:
+      - app_network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - token_generator
+    
+    
+     
+
+networks:
+  app_network:
+    driver: bridge

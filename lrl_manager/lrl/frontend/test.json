@@ -1,0 +1,13 @@
+{
+	"A": {
+		"1": {
+			"owner": "0xe4555c9d7449913c987d674d0ad28d98b700abb6",
+			"inheritors": ["0x53312934aacd1d181ff7c8f7afa19c4565c64ce6"],
+			"executors": [
+				"0xd42c8872ddb90997c31dd1dc8d121ec3a0dc70db",
+				"0x8f8494d0be30641a88d82354b772f28dc45c0ff9",
+				"0x53312934aacd1d181ff7c8f7afa19c4565c64ce6"
+			]
+		}
+	}
+}

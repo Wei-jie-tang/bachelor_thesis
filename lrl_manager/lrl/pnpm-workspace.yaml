@@ -1,0 +1,5 @@
+packages:
+  - dummycontract
+  - backend
+  - frontend
+  - packages/*

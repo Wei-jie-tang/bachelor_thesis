@@ -1,0 +1,24 @@
+# Notes
+
+- User Interface
+  - Functions:
+    - All Contract Methods
+    - Inspect Nodes
+      - Show active assets
+    - Inspect Assets
+      - Show Owner, Inheritor and Executors
+  - Routes:
+    - /method/<method>
+    - /node/:address
+      - Respond with active assets (Owned)
+        - past Events: Transfer to $address, "subtract" Transfer from $address
+        - Cache results
+        - Use cache if not transfer from $address occured
+      - Opt: Show executed assets
+        - past Events: ExecutorChosen $address
+      - Opt: Show inherited assets
+        - past Events: InheritorChosen $address
+    - /asset/:id
+      - Respond with Owner, Inheritor and Exectuor addresses
+        - past Events: Transfer $id (latest)
+      - Opt: info last transfer

@@ -1,0 +1,56 @@
+{
+  "0xac9cba1b964b4f8f17bc632cf22db3545c34f552": {
+    "CPU_pct": 58,
+    "clockrate_GHz": 3,
+    "RAM_GB": 8,
+    "BW_utilization": 62,
+    "RTT_ms": 4,
+    "cores": 7,
+    "BW": 1
+  },
+  "0x10788bde3943485d2579c8916aae6b8778151e25": {
+    "CPU_pct": 58,
+    "clockrate_GHz": 3,
+    "RAM_GB": 7,
+    "BW_utilization": 50,
+    "RTT_ms": 1,
+    "cores": 4,
+    "BW": 2
+  },
+  "0x9bcd8dfa7fa4cb8ea192d181b9b03e305437e7a4": {
+    "CPU_pct": 58,
+    "clockrate_GHz": 3,
+    "RAM_GB": 8,
+    "BW_utilization": 69,
+    "RTT_ms": 1,
+    "cores": 4,
+    "BW": 2
+  },
+  "0xaf0080ae2ac31ca170db207c8c8a3e455b52425b": {
+    "CPU_pct": 58,
+    "clockrate_GHz": 3,
+    "RAM_GB": 7,
+    "BW_utilization": 58,
+    "RTT_ms": 4,
+    "cores": 4,
+    "BW": 1
+  },
+  "0x343dc18a12c0878984dd8ba58cde77c6bdb6f6c3": {
+    "CPU_pct": 58,
+    "clockrate_GHz": 3,
+    "RAM_GB": 7,
+    "BW_utilization": 58,
+    "RTT_ms": 4,
+    "cores": 4,
+    "BW": 1
+  },
+  "asset": {
+    "CPU_pct": 58,
+    "clockrate_GHz": 3,
+    "RAM_GB": 6,
+    "BW_utilization": 62,
+    "RTT_ms": 1,
+    "cores": 4,
+    "BW": 1
+  }
+}

@@ -1,0 +1,4 @@
+{"Requester":"machine2","Timestamp":"1679494880412","Data":"is_a_test?","Signature":"MEUCIH9RXvpLXFKJOArJuoDHGPmeKeUUzPcdk/2p+0be362rAiEA1Xm5p3Aoiikor2SBFh489nTANWn12aNVn3Dmahk+zZs="}
+{"Replier":"machine1","Timestamp":"1679494880412","Data":"not_a_test","Signature":"MEUCIQCkS3+yRJVsvMQ95HFXaLXtu/CV1hU4AvhzYYchdrgamAIgLGy9zhHya/RzUpLtjUPKnkH5kvdGJS5U6AhcSeb30Nk="}
+{"Replier":"machine2","Timestamp":"1679494880412","Data":"test","Signature":"MEUCIQCkS3+yRJVsvMQ95HFXaLXtu/CV1hU4AvhzYYchdrgamAIgLGy9zhHya/RzUpLtjUPKnkH5kvdGJS5U6AhcSeb30Nl="}
+{"Replier":"machine3","Timestamp":"1679494880412","Data":"test","Signature":"MEUCIQCkS3+yRJVsvMQ95HFXaLXtu/CV1hU4AvhzYYchdrgamAIgLGy9zhHya/RzUpLtjUPKnkH5kvdGJS5U6AhcSeb30NH="}

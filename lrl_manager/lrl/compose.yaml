@@ -1,0 +1,21 @@
+services:
+  dummycontract:
+    build:
+      context: .
+      target: dummycontract
+    env_file:
+      - .env
+  backend:
+    build:
+      context: .
+      target: backend
+    env_file:
+      - .env
+  frontend:
+    build:
+      context: .
+      target: frontend
+    env_file:
+      - .env
+    ports:
+      - 3000:3000

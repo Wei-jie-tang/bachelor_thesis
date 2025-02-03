@@ -1,0 +1,9 @@
+node_modules
+src/common/crypto/keys
+src/LocalMachine/keys
+src/Inheritor/keys
+src/Executor/keys
+.vscode
+dist
+*.pdf
+bugs.md
