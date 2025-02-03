@@ -1,7 +1,12 @@
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
+RUN npm uninstall -g corepack
+RUN npm install -g corepack
 RUN corepack enable
+
+RUN corepack prepare pnpm@latest --activate
 
 FROM base AS build
 COPY . /usr/src/app

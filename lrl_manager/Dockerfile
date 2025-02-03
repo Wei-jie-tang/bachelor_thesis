@@ -1,9 +1,13 @@
 
 FROM node:18
 WORKDIR /app
+
+RUN npm uninstall -g corepack
+RUN npm install -g corepack
+# Enable Corepack and install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package*.json /app/
 
-RUN npm install -g pnpm@latest-10
 RUN pnpm install --recursive
 RUN npm install typescript --save-dev
 
@@ -17,8 +21,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 COPY . .
 
-RUN corepack enable
-RUN pnpm config set store-dir /pnpm/store/v3
 WORKDIR /app/lrl
 RUN rm pnpm-lock.yaml && pnpm install --no-frozen-lockfile 
 WORKDIR /app
