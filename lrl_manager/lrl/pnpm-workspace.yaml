@@ -3,5 +3,6 @@ packages:
   - backend
   - frontend
   - packages/*
-packageManager: pnpm@10.2.0
-inject-workspace-packages: true
+#packageManager: pnpm@10.2.0
+settings:
+  inject-workspace-packages: true

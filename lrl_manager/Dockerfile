@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
 COPY . .
 #RUN pnpm config set store-dir /pnpm/store/v3
 WORKDIR /app/lrl
-RUN rm pnpm-lock.yaml && yes | pnpm install --no-frozen-lockfile
+#RUN rm pnpm-lock.yaml && yes | pnpm install --no-frozen-lockfile
 
 WORKDIR /app
 EXPOSE 3600

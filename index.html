@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC P2P Chat</title>
+  </head>
+  <body>
+    <h1>WebRTC P2P Connection</h1>
+    <button id="sendButton">Send Message</button>
+    <div id="messages"></div>
+
+    <script>
+      const ws = new WebSocket("ws://localhost:4000");
+      const peerConnection = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      });
+
+      let dataChannel;
+      let isInitiator = false;
+      let pendingCandidates = [];
+
+      ws.onopen = () => {
+        console.log("Connected to signaling server");
+      };
+
+      ws.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+
+        if (message.offer) {
+          console.log("Received offer, setting remote description.");
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(message.offer)
+          );
+
+          // Add any ICE candidates received before remoteDescription was set
+          pendingCandidates.forEach((candidate) =>
+            peerConnection.addIceCandidate(candidate)
+          );
+          pendingCandidates = []; // Clear after applying
+
+          console.log("Creating and sending answer...");
+          const answer = await peerConnection.createAnswer();
+          await peerConnection.setLocalDescription(answer);
+          ws.send(JSON.stringify({ answer }));
+        } else if (message.answer) {
+          console.log("Received answer, setting remote description.");
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(message.answer)
+          );
+        } else if (message.candidate) {
+          if (peerConnection.remoteDescription) {
+            console.log("Received ICE candidate, adding...");
+            await peerConnection.addIceCandidate(
+              new RTCIceCandidate(message.candidate)
+            );
+          } else {
+            console.warn(
+              "ICE Candidate received before remoteDescription is set. Storing..."
+            );
+            pendingCandidates.push(new RTCIceCandidate(message.candidate));
+          }
+        }
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate && ws.readyState === WebSocket.OPEN) {
+          console.log("Sending ICE candidate...");
+          ws.send(JSON.stringify({ candidate: event.candidate }));
+        }
+      };
+
+      peerConnection.ondatachannel = (event) => {
+        dataChannel = event.channel;
+        setupDataChannel();
+      };
+
+      function setupDataChannel() {
+        dataChannel.onmessage = (event) => {
+          document.getElementById(
+            "messages"
+          ).innerHTML += `<p>Peer: ${event.data}</p>`;
+        };
+        dataChannel.onopen = () => console.log("DataChannel open!");
+        dataChannel.onclose = () => console.log("DataChannel closed.");
+      }
+
+      document.getElementById("sendButton").onclick = () => {
+        if (dataChannel && dataChannel.readyState === "open") {
+          const message = "Hello from this peer!";
+          console.log("Sending message:", message);
+          dataChannel.send(message);
+          document.getElementById(
+            "messages"
+          ).innerHTML += `<p>Me: ${message}</p>`;
+        } else {
+          console.error("DataChannel is not open.");
+        }
+      };
+
+      // 🔹 Initiate call only for the first opened peer
+      if (!sessionStorage.getItem("initiator")) {
+        isInitiator = true;
+        sessionStorage.setItem("initiator", "true");
+
+        dataChannel = peerConnection.createDataChannel("chat");
+        setupDataChannel();
+
+        peerConnection.createOffer().then((offer) => {
+          peerConnection.setLocalDescription(offer);
+          ws.send(JSON.stringify({ offer }));
+        });
+      }
+    </script>
+  </body>
+</html>
