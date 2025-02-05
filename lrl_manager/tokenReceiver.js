@@ -1,5 +1,5 @@
 const express = require("express");
-const fs = require('fs');
+const fs = require("fs");
 
 const crypto = require("crypto");
 const { exec } = require("child_process");
@@ -47,7 +47,6 @@ function grantDockerAccess() {
   });
 }
 
-
 function revokeDockerAccess() {
   return new Promise((resolve, reject) => {
     exec("sudo chmod 660 /var/run/docker.sock", (err, stdout, stderr) => {
@@ -61,7 +60,6 @@ function revokeDockerAccess() {
   });
 }
 
-
 app.post("/token_manage", async (req, res) => {
   const { token, publicKey } = req.body;
 
@@ -70,13 +68,15 @@ app.post("/token_manage", async (req, res) => {
   if (!verifyToken(token, PUBLIC_KEY)) {
     return res.status(403).json({ error: "Invalid token" });
   } else {
-    console.log('Valid token');
+    console.log("Valid token");
   }
 
   const { payload } = JSON.parse(Buffer.from(token, "base64").toString("utf8"));
   const [containerName, action, timestamp] = payload.split(":");
 
-  console.log(`Action to be performed: ${action} on container: ${containerName} at ${timestamp}`);
+  console.log(
+    `Action to be performed: ${action} on container: ${containerName} at ${timestamp}`
+  );
 
   // Start NestedContainer
   if (action === "start") {
@@ -88,23 +88,26 @@ app.post("/token_manage", async (req, res) => {
         
         docker-compose -f /app/lrl/compose.yaml up --build
       `;
-      
-      exec(command,(err, stdout, stderr) => {
+
+      exec(command, (err, stdout, stderr) => {
         const endTime = Date.now();
-        const elapsedTime = ((endTime - startTime) / 1000).toFixed(2); 
+        const elapsedTime = ((endTime - startTime) / 1000).toFixed(2);
         if (err) {
           console.error("Docker Compose error:", stderr);
           revokeDockerAccess();
-          return res.status(500).json({ error: stderr ,elapsedTime: `${elapsedTime} seconds`});
+          return res
+            .status(500)
+            .json({ error: stderr, elapsedTime: `${elapsedTime} seconds` });
         }
 
         console.log(stdout);
         res.json({ message: "Docker Compose completed successfully." });
-        
-        revokeDockerAccess();
-        console.log("Docker socket access revoked after nested container started.");
-      });
 
+        revokeDockerAccess();
+        console.log(
+          "Docker socket access revoked after nested container started."
+        );
+      });
     } catch (err) {
       await revokeDockerAccess();
       res.status(500).json({ error: err.message });

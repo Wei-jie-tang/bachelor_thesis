@@ -3,3 +3,5 @@ packages:
   - backend
   - frontend
   - packages/*
+
+inject-workspace-packages: true
