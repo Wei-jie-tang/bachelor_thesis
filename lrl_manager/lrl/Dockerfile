@@ -11,10 +11,9 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run -r build
-RUN pnpm deploy --filter=frontend --prod /prod/frontend 
-RUN pnpm deploy --filter=backend --prod /prod/backend
-RUN pnpm deploy --filter=dummycontract --prod /prod/dummycontract
-
+RUN pnpm deploy --filter=frontend --prod --legacy /prod/frontend 
+RUN pnpm deploy --filter=backend --prod --legacy /prod/backend
+RUN pnpm deploy --filter=dummycontract --prod --legacy /prod/dummycontract
 FROM base AS frontend
 COPY --from=build /prod/frontend /prod/frontend
 WORKDIR /prod/frontend
