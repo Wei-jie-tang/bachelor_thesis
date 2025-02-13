@@ -11,6 +11,7 @@ import {
   e_once,
   e_subscribe,
   f_transferAsser,
+  f_getAllNodes,
 } from "../../../@types/contract_methods";
 import { callbackStack } from "../../../@types/callbackStack";
 import { callbackList } from "../../../@types/callbackList";
@@ -28,6 +29,24 @@ import { addSubscription, removeSubscription } from "./subscriptions";
 
 const port = 8080;
 const url = `http://${host}:${port}`;
+export let getAllNodes: f_getAllNodes = async function (): Promise<string[]> {
+  try {
+    const res = await fetch(url + "/methods/getAllNodes", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch nodes: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.nodes; // Assuming the response structure contains { nodes: string[] }
+  } catch (err) {
+    throw new Error(`Error fetching nodes: ${err.message}`);
+  }
+};
+
 export let registerNode: f_registerNode = async function (node: LRLNode) {
   const postData = JSON.stringify({
     sender: node.addr,

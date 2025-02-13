@@ -5,6 +5,9 @@ import path from "path";
 import * as contractInterface from "../common/contract/dummy/interface";
 import Self from "../LRLNode";
 import { Asset } from "../Asset";
+import { exchangeECDHKeys } from "../procedures/session_token";
+import { decryptSessionToken } from "../common/cryptography/encrypt_ecdh";
+
 import {
   D_ASSET,
   D_TMP,
@@ -60,7 +63,7 @@ router.post("/methods/registerNode", (req, res) => {
     });
 });
 
-router.post("/methods/registerAsset", (req, res, next) => {
+router.post("/methods/registerAsset", async (req, res, next) => {
   console.log(`Received request: registerAsset`);
   const IP = "";
   const address = req.body.owner;
@@ -81,6 +84,16 @@ router.post("/methods/registerAsset", (req, res, next) => {
   // if (error) console.error(error);
   // console.log("Event triggered: " + JSON.stringify(event));
   // });
+  try {
+    // 🔹 Fetch all nodes before proceeding
+    const allNodes = await contractInterface.getAllNodes();
+    console.log(`All available nodes: ${JSON.stringify(allNodes, null, 2)}`);
+  } catch (err) {
+    console.error(`Error fetching nodes: ${err}`);
+    res.status(500).json({ error: "Failed to fetch nodes" });
+    return;
+  }
+
   contractInterface.once(
     "NewAsset",
     { filter: { owner: address } },
@@ -114,7 +127,14 @@ router.post("/methods/registerAsset", (req, res, next) => {
         res.status(STATUS_INTERNAL_SERVER_ERROR);
         res.send(err);
       }
+      const testator = req.body.owner; // The owner is the testator
+      //const { encryptedTokens, decryptedTokens, distributedPublicKeys } =
+      //  await exchangeECDHKeys(testator, executors, inheritor);
 
+      //console.log("ECDH Key Exchange completed.");
+      //console.log("Encrypted tokens:", encryptedTokens);
+      //console.log("Distributed public keys:", distributedPublicKeys);
+      //console.log("decrypted tokens:", decryptedTokens);
       /// MAIN ASSET PREPARATION ///
 
       let asset_enc = new Asset(

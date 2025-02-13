@@ -24,6 +24,7 @@ export class Contract {
   private _inheritor: Map<number, string>;
   private _executors: Map<number, string[]>;
   private _password: Map<number, string>;
+  private _encryptedSessionToken: Map<number, string>;
 
   public methods: {
     registerNode: Function;
@@ -33,12 +34,14 @@ export class Contract {
     setPassword: Function;
     transferAsset: Function;
     transferToOriginalOwner: Function;
+    getAllNodes: Function;
   };
 
   constructor() {
     this._pastEvents = [];
 
     this.methods = {
+      getAllNodes: (...args) => this.getAllNodes.apply(this, args),
       registerNode: (...args) => {
         return this.registerNode.apply(this, args);
       },
@@ -70,9 +73,14 @@ export class Contract {
     this._inheritor = new Map<number, string>();
     this._executors = new Map<number, string[]>();
     this._password = new Map<number, string>();
+    this._encryptedSessionToken = new Map<number, string>();
   }
 
-  /// METHODS ///
+  /// METHODS //
+  getAllNodes(): string[] {
+    return this._allNodes;
+  }
+
   registerNode(
     IP: string,
     CPU_pct: number,

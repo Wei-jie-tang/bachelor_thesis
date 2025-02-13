@@ -35,3 +35,7 @@ interface e_once {
 interface e_subscribe {
   (event: string, options: Options, callback: EventCallback): void;
 }
+
+interface f_getAllNodes {
+  (): Promise<string[]>;
+}

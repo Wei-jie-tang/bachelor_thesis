@@ -93,5 +93,6 @@ export function decryptSessionToken(
   ]);
 
   // Return the decrypted token, removing the salt part
-  return decrypted.toString("utf8").slice(salt.length); // Remove the salt part and return the original token
+  return decrypted.slice(salt.length).toString("utf8");
+  // Remove the salt part and return the original token
 }

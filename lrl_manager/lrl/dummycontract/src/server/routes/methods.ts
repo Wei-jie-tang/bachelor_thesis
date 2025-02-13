@@ -6,6 +6,15 @@ methodRouter.use(express.json());
 
 export const contract = new Contract();
 
+methodRouter.get("/methods/getAllNodes", (req, res) => {
+  try {
+    const allNodes = contract.methods.getAllNodes();
+    res.json({ nodes: allNodes });
+  } catch (err) {
+    res.status(500).json({ error: "Error retrieving nodes" });
+  }
+});
+
 methodRouter.post("/methods/registerNode", (req, res) => {
   const IP = req.body.IP;
   const sender = req.body.sender;
