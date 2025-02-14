@@ -5,9 +5,13 @@ import path from "path";
 import * as contractInterface from "../common/contract/dummy/interface";
 import Self from "../LRLNode";
 import { Asset } from "../Asset";
-import { exchangeECDHKeys } from "../procedures/session_token";
-import { decryptSessionToken } from "../common/cryptography/encrypt_ecdh";
-
+import {
+  exchangeECDHKeys,
+  decryptSessionTokens,
+  encryptSessionTokens,
+} from "../procedures/session_token";
+import { generateECDHKeyPair } from "../common/cryptography/encrypt_ecdh";
+const keyStoragePath = path.join(__dirname, "ecdh_keys.json");
 import {
   D_ASSET,
   D_TMP,
@@ -25,6 +29,26 @@ import {
 
 const router: Router = express.Router();
 router.use(express.json());
+
+export function loadECDHKeys(): {
+  [key: string]: { publicKey: string; privateKey: string };
+} {
+  if (fs.existsSync(keyStoragePath)) {
+    const rawData = JSON.parse(fs.readFileSync(keyStoragePath, "utf8"));
+    let parsedKeys: {
+      [key: string]: { publicKey: Buffer; privateKey: Buffer };
+    } = {};
+    return JSON.parse(fs.readFileSync(keyStoragePath, "utf8"));
+  }
+  fs.writeFileSync(keyStoragePath, JSON.stringify({}, null, 2), "utf8");
+  const emptyData = {}; // Create an empty JSON file;
+  return emptyData;
+}
+function saveECDHKeys(keys: {
+  [key: string]: { publicKey: string; privateKey: string };
+}) {
+  fs.writeFileSync(keyStoragePath, JSON.stringify(keys, null, 2), "utf8");
+}
 router.post("/methods/registerNode", (req, res) => {
   console.log(`Received request: registerNode`);
   const IP = "";
@@ -54,7 +78,13 @@ router.post("/methods/registerNode", (req, res) => {
   // );
   // }
   // );
-
+  const { privateKey, publicKey } = generateECDHKeyPair();
+  let storedKeys = loadECDHKeys();
+  storedKeys[addr] = {
+    publicKey: publicKey.toString("hex"),
+    privateKey: privateKey.toString("hex"),
+  };
+  saveECDHKeys(storedKeys);
   contractInterface
     .registerNode({ IP, addr, resources: resources })
     .then(() => {
@@ -135,6 +165,33 @@ router.post("/methods/registerAsset", async (req, res, next) => {
       //console.log("Encrypted tokens:", encryptedTokens);
       //console.log("Distributed public keys:", distributedPublicKeys);
       //console.log("decrypted tokens:", decryptedTokens);
+      //const storedKeys = loadECDHKeys();
+      //const nodeKeys = storedKeys[address];
+
+      //const privateKey = Buffer.from(nodeKeys.privateKey, "hex");
+      //const publicKey = Buffer.from(nodeKeys.publicKey, "hex");
+      const { ecdhKeys, distributedPublicKeys } = await exchangeECDHKeys(
+        testator,
+        executors,
+        inheritor
+      );
+      const encryptSessionToken = encryptSessionTokens(
+        testator,
+        executors,
+        inheritor,
+        ecdhKeys
+      );
+      //console.log("Encrypted tokens:", encryptSessionToken);
+      const decryptSessionToken = decryptSessionTokens(
+        executors,
+        inheritor,
+        encryptSessionToken,
+        distributedPublicKeys,
+        ecdhKeys
+      );
+
+      //console.log("Distributed public keys:", distributedPublicKeys);
+      //console.log("decrypted tokens:", decryptSessionToken);
       /// MAIN ASSET PREPARATION ///
 
       let asset_enc = new Asset(

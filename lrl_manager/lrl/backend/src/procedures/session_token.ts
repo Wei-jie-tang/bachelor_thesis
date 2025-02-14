@@ -3,10 +3,7 @@ import {
   encryptSessionToken,
   decryptSessionToken,
 } from "../common/cryptography/encrypt_ecdh";
-
-/**
- * Generates ECDH key pairs for all participants and exchanges public keys.
- */
+import { loadECDHKeys } from "../routes/contract_methods";
 export function exchangeECDHKeys(
   testator: string,
   executors: string[],
@@ -17,18 +14,32 @@ export function exchangeECDHKeys(
 } {
   console.log("Starting ECDH key exchange...");
 
-  // Generate ECDH key pairs
-  let ecdhKeys: { [key: string]: { publicKey: Buffer; privateKey: Buffer } } =
-    {};
-  for (const node of [testator, ...executors, inheritor]) {
-    ecdhKeys[node] = generateECDHKeyPair();
+  // Load stored ECDH keys
+  let rawECDHKeys = loadECDHKeys();
+
+  // Ensure all nodes have keys
+  const allNodes = [testator, ...executors, inheritor];
+  for (const node of allNodes) {
+    if (!rawECDHKeys[node]) {
+      throw new Error(`Missing ECDH keys for node: ${node}`);
+    }
   }
 
-  console.log("ECDH keys generated:", ecdhKeys);
+  console.log("ECDH keys loaded successfully.");
+
+  // Convert stored keys (string → Buffer)
+  let ecdhKeys: { [key: string]: { publicKey: Buffer; privateKey: Buffer } } =
+    {};
+  for (const node of allNodes) {
+    ecdhKeys[node] = {
+      publicKey: Buffer.from(rawECDHKeys[node].publicKey, "hex"),
+      privateKey: Buffer.from(rawECDHKeys[node].privateKey, "hex"),
+    };
+  }
 
   // Collect public keys
   let publicKeys: { [key: string]: Buffer } = {};
-  for (const node in ecdhKeys) {
+  for (const node of allNodes) {
     publicKeys[node] = ecdhKeys[node].publicKey;
   }
 
