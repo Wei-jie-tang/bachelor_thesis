@@ -1,4 +1,3 @@
-import fs from "fs";
 /// User Input routes ///
 import express, { Router } from "express";
 import path from "path";
@@ -11,7 +10,7 @@ import {
   encryptSessionTokens,
 } from "../procedures/session_token";
 import { generateECDHKeyPair } from "../common/cryptography/encrypt_ecdh";
-const keyStoragePath = path.join(__dirname, "ecdh_keys.json");
+import { loadECDHKeys, saveECDHKeys } from "../procedures/ecdh_key";
 import {
   D_ASSET,
   D_TMP,
@@ -30,28 +29,10 @@ import {
 const router: Router = express.Router();
 router.use(express.json());
 
-export function loadECDHKeys(): {
-  [key: string]: { publicKey: string; privateKey: string };
-} {
-  if (fs.existsSync(keyStoragePath)) {
-    const rawData = JSON.parse(fs.readFileSync(keyStoragePath, "utf8"));
-    let parsedKeys: {
-      [key: string]: { publicKey: Buffer; privateKey: Buffer };
-    } = {};
-    return JSON.parse(fs.readFileSync(keyStoragePath, "utf8"));
-  }
-  fs.writeFileSync(keyStoragePath, JSON.stringify({}, null, 2), "utf8");
-  const emptyData = {}; // Create an empty JSON file;
-  return emptyData;
-}
-function saveECDHKeys(keys: {
-  [key: string]: { publicKey: string; privateKey: string };
-}) {
-  fs.writeFileSync(keyStoragePath, JSON.stringify(keys, null, 2), "utf8");
-}
-router.post("/methods/registerNode", (req, res) => {
+router.post("/methods/registerNode", async (req, res) => {
   console.log(`Received request: registerNode`);
-  const IP = "";
+
+  const IP = req.body.IP || "";
   const addr = req.body.address;
   const resources = {
     CPU_pct: 100,
@@ -78,19 +59,30 @@ router.post("/methods/registerNode", (req, res) => {
   // );
   // }
   // );
-  const { privateKey, publicKey } = generateECDHKeyPair();
-  let storedKeys = loadECDHKeys();
-  storedKeys[addr] = {
-    publicKey: publicKey.toString("hex"),
-    privateKey: privateKey.toString("hex"),
-  };
-  saveECDHKeys(storedKeys);
-  contractInterface
-    .registerNode({ IP, addr, resources: resources })
-    .then(() => {
-      res.status(STATUS_NO_CONTENT);
-      res.send();
+  try {
+    const { privateKey, publicKey } = generateECDHKeyPair();
+    let storedKeys = loadECDHKeys();
+    storedKeys[addr] = {
+      publicKey: publicKey.toString("hex"),
+      privateKey: privateKey.toString("hex"),
+    };
+    saveECDHKeys(storedKeys);
+
+    // 🔹 Register Node using the real smart contract
+    const txHash = await contractInterface.registerNode({
+      IP,
+      addr,
+      resources,
     });
+
+    console.log("Node registered, Transaction Hash:", txHash);
+
+    // 🔹 Send response with transaction hash
+    res.status(200).json({ success: true, txHash });
+  } catch (error) {
+    console.error("Error registering node:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 router.post("/methods/registerAsset", async (req, res, next) => {
@@ -109,20 +101,6 @@ router.post("/methods/registerAsset", async (req, res, next) => {
   const numExecutors = parseInt(req.body.numExecutors);
   const threshold = parseInt(req.body.threshold);
   console.log(`Address: ${address}\n Resrouces: ${JSON.stringify(resources)}`);
-
-  // contractInterface.once("NewAsset", {}, (error, event) => {
-  // if (error) console.error(error);
-  // console.log("Event triggered: " + JSON.stringify(event));
-  // });
-  try {
-    // 🔹 Fetch all nodes before proceeding
-    const allNodes = await contractInterface.getAllNodes();
-    console.log(`All available nodes: ${JSON.stringify(allNodes, null, 2)}`);
-  } catch (err) {
-    console.error(`Error fetching nodes: ${err}`);
-    res.status(500).json({ error: "Failed to fetch nodes" });
-    return;
-  }
 
   contractInterface.once(
     "NewAsset",
@@ -158,18 +136,7 @@ router.post("/methods/registerAsset", async (req, res, next) => {
         res.send(err);
       }
       const testator = req.body.owner; // The owner is the testator
-      //const { encryptedTokens, decryptedTokens, distributedPublicKeys } =
-      //  await exchangeECDHKeys(testator, executors, inheritor);
 
-      //console.log("ECDH Key Exchange completed.");
-      //console.log("Encrypted tokens:", encryptedTokens);
-      //console.log("Distributed public keys:", distributedPublicKeys);
-      //console.log("decrypted tokens:", decryptedTokens);
-      //const storedKeys = loadECDHKeys();
-      //const nodeKeys = storedKeys[address];
-
-      //const privateKey = Buffer.from(nodeKeys.privateKey, "hex");
-      //const publicKey = Buffer.from(nodeKeys.publicKey, "hex");
       const { ecdhKeys, distributedPublicKeys } = await exchangeECDHKeys(
         testator,
         executors,
@@ -190,8 +157,6 @@ router.post("/methods/registerAsset", async (req, res, next) => {
         ecdhKeys
       );
 
-      //console.log("Distributed public keys:", distributedPublicKeys);
-      //console.log("decrypted tokens:", decryptSessionToken);
       /// MAIN ASSET PREPARATION ///
 
       let asset_enc = new Asset(

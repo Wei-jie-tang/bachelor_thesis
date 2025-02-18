@@ -3,7 +3,7 @@ import {
   encryptSessionToken,
   decryptSessionToken,
 } from "../common/cryptography/encrypt_ecdh";
-import { loadECDHKeys } from "../routes/contract_methods";
+import { loadECDHKeys } from "./ecdh_key";
 export function exchangeECDHKeys(
   testator: string,
   executors: string[],

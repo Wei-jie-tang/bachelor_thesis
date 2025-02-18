@@ -1,0 +1,8 @@
+local network test:
+npx hardhat clean
+npx hardhat compile
+npx hardhat node
+cd smartcontract
+npx hardhat run scripts/deploy.js --network localhost
+public network test:
+change infura api key and metamask key
