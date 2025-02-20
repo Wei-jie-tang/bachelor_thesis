@@ -16,7 +16,7 @@ local network test:
 cd smartcontract
 npx hardhat clean
 npx hardhat compile
-npx hardhat node
+npx hardhat node --hostname 0.0.0.0
 
 npx hardhat run scripts/deploy.js --network localhost
 public network test:

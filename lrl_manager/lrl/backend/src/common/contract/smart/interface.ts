@@ -94,7 +94,13 @@ export let registerNode: f_registerNode = async function (node: LRLNode) {
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
-    console.log("Transaction confirmed:", receipt.transactionHash);
+    console.log("Transaction confirmed:", receipt);
+
+    if (receipt.status === 1) {
+      console.log("Node registered, Transaction Hash:", tx.hash);
+    } else {
+      console.log("Transaction failed!");
+    }
 
     return receipt.transactionHash;
   } catch (error) {

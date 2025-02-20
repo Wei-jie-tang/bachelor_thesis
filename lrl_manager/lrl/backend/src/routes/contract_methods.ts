@@ -1,7 +1,7 @@
 /// User Input routes ///
 import express, { Router } from "express";
 import path from "path";
-import * as contractInterface from "../common/contract/smart/interface";
+import * as contractInterface from "../common/contract/dummy/interface";
 import Self from "../LRLNode";
 import { Asset } from "../Asset";
 import {
@@ -69,18 +69,15 @@ router.post("/methods/registerNode", async (req, res) => {
     saveECDHKeys(storedKeys);
 
     // 🔹 Register Node using the real smart contract
-    const txHash = await contractInterface.registerNode({
+    contractInterface.registerNode({
       IP,
       addr,
       resources,
     });
 
-    console.log("Node registered, Transaction Hash:", txHash);
-
     // 🔹 Send response with transaction hash
-    res.status(200).json({ success: true, txHash });
+    res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error registering node:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
