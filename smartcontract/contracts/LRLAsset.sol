@@ -17,6 +17,8 @@ contract LRLAsset is ERC721URIStorage, ERC721Enumerable {
   event NewAsset(uint256 indexed ID, address indexed owner, string requirements);
   event InheritorChosen(address indexed addr, uint256 indexed assetID); 
   event TestamentorChosen(address indexed addr, uint256 indexed assetID);
+  event ECDHPublicKeyStored(address indexed node, string publicKey);
+  event EncryptedTokenStored(address indexed node, string encryptedToken);
 
   struct Resources {
     uint cpu_pct;
@@ -38,6 +40,10 @@ contract LRLAsset is ERC721URIStorage, ERC721Enumerable {
   mapping (address => Resources) private _resources;
   mapping (uint256 => address) private _originalOwner;
   mapping (uint256 => bytes32) private _password;
+  mapping(address => string) private _ecdhPublicKeys;
+ 
+  mapping(address => string) private _encryptedTokens;
+
 
   modifier onlyOriginalOwner(uint256 assetID) {
     require(msg.sender == _originalOwner[assetID]);
@@ -50,6 +56,28 @@ contract LRLAsset is ERC721URIStorage, ERC721Enumerable {
   }
 
   constructor() ERC721("LRLAsset", "LRL") {} 
+
+  function storeECDHPublicKey(address node, string memory publicKey) external {
+        require(_nodeExists(node), "Node not registered");
+        _ecdhPublicKeys[node] = publicKey;
+        emit ECDHPublicKeyStored(node, publicKey);
+    }
+
+  function getECDHPublicKey(address node) external view returns (string memory) {
+        require(bytes(_ecdhPublicKeys[node]).length > 0, "Public key not found");
+        return _ecdhPublicKeys[node];
+    }
+  function storeEncryptedToken(string memory encryptedToken) external {
+        require(_nodeExists(msg.sender), "Sender is not a registered node");
+
+        _encryptedTokens[msg.sender] = encryptedToken;
+        emit EncryptedTokenStored(msg.sender, encryptedToken);
+    }
+  function getEncryptedToken() external view returns (string memory) {
+        require(bytes(_encryptedTokens[msg.sender]).length > 0, "No encrypted token found");
+        return _encryptedTokens[msg.sender];
+    }
+
 
   // Contract Interface
   function registerNode(
@@ -101,11 +129,19 @@ contract LRLAsset is ERC721URIStorage, ERC721Enumerable {
     emit TestamentorChosen(testamentor, assetID);
   }
 
+  function getTestamentors(uint256 assetID) external view returns (address[] memory) {
+    require(_exists(assetID), "Asset does not exist.");
+    return _testamentors[assetID];
+    }
   function setInheritor(uint256 assetID, address inheritor) public onlyOwner(assetID) {
     require (_exists(assetID), "Asset does not exist.");
     _inheritor[assetID] = inheritor;
     emit InheritorChosen(inheritor, assetID);
   }
+  function getInheritor(uint256 assetID) external view returns (address) {
+    require(_exists(assetID), "Asset does not exist.");
+    return _inheritor[assetID];
+    }
 
   function setPassword(uint256 assetID, bytes32 pw_hash) public onlyOwner(assetID) {
     _password[assetID] = pw_hash;
@@ -193,5 +229,10 @@ contract LRLAsset is ERC721URIStorage, ERC721Enumerable {
     );
     return string(dataURI); 
   }
+  function getEncryptedToken(address node) external view returns (string memory) {
+    require(_nodeExists(node), "Node not registered");
+    require(bytes(_encryptedTokens[node]).length > 0, "No encrypted token found for this node");
+    return _encryptedTokens[node];
+}
 
 }

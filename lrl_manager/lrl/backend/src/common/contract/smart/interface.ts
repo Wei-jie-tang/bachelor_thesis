@@ -1,18 +1,42 @@
 import http from "http";
 import Self from "../../../LRLNode";
-import { ethers } from "ethers";
+import { ethers, Wallet } from "ethers";
 import contractABI from "./LRLAsset.json";
 const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
-const getSigner = async () => await provider.getSigner();
-let contract: ethers.Contract;
+const provider = new ethers.JsonRpcProvider("http://172.20.0.1:8545/");
+const PRIVATE_KEY =
+  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+const getSigner = async () => wallet;
+let contract: ethers.Contract | null = null;
 const initContract = async () => {
-  const contract = new ethers.Contract(
-    CONTRACT_ADDRESS,
-    contractABI.abi,
-    await getSigner()
-  );
-  return contract;
+  try {
+    if (contract) return contract;
+    const signer = await getSigner();
+
+    if (!signer) {
+      throw new Error("signer is undefined. Check provider connection.");
+    }
+
+    console.log(" Using Signer:", signer.address);
+
+    if (!contractABI.abi) {
+      throw new Error(" Contract ABI is undefined. Check LRLAsset.json.");
+    }
+
+    contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI.abi, signer);
+
+    if (!contract) {
+      throw new Error(" Contract initialization failed.");
+    }
+
+    console.log(" Contract initialized:", contract.address);
+
+    return contract;
+  } catch (error) {
+    console.error(" Error initializing contract:", error);
+    throw error;
+  }
 };
 
 import {
@@ -51,6 +75,11 @@ initContract()
 
 export let registerNode: f_registerNode = async function (node: LRLNode) {
   try {
+    const contract = await initContract();
+
+    if (!contract.registerNode) {
+      throw new Error("registerNode function not found in the contract ABI");
+    }
     const tx = await contract.registerNode(
       node.IP, // string memory IP
       node.resources.CPU_pct, // uint cpu_pct
@@ -105,35 +134,29 @@ export let setInheritor: f_setInheritor = async function (
   inheritor: address,
   self: LRLNode
 ): Promise<string> {
-  const postData = JSON.stringify({
-    assetID,
-    inheritor,
-    sender: self.address,
-  });
+  try {
+    const tx = await contract.setInheritor(assetID, inheritor);
 
-  // resolves with Inheritor address
-  return new Promise<string>((resolve, reject) => {
-    fetch(url + "/methods/setInheritor", {
-      method: "POST",
-      body: postData,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(async (res) => {
-      if (res.status === 201) {
-        const data = await res.json();
-        const assetID = data.assetID;
-        const inheritor = data.inheritor;
-        console.log(
-          `Successfully set Inheritor for asset #${assetID}: ${inheritor}`
-        );
-        resolve(inheritor);
-      } else {
-        const error = await res.text();
-        reject(error);
-      }
-    });
-  });
+    console.log("Transaction sent, waiting for confirmation...", tx.hash);
+    const receipt = await tx.wait(); // Wait for transaction confirmation
+    console.log("Transaction confirmed:", receipt);
+
+    // Get the inheritor address from the event logs
+    const event = receipt.events?.find((e) => e.event === "InheritorChosen");
+    const newInheritor = event?.args?.inheritor;
+
+    if (!newInheritor) {
+      throw new Error("Failed to retrieve inheritor from event logs.");
+    }
+
+    console.log(
+      `Successfully set Inheritor for asset #${assetID}: ${newInheritor}`
+    );
+    return newInheritor.toString();
+  } catch (error) {
+    console.error("Error setting inheritor:", error);
+    throw error;
+  }
 };
 
 export let setExecutor: f_setExecutor = async function (
@@ -141,35 +164,29 @@ export let setExecutor: f_setExecutor = async function (
   executor: address,
   self: LRLNode
 ): Promise<string> {
-  const postData = JSON.stringify({
-    assetID,
-    executor,
-    sender: self.address,
-  });
+  try {
+    const tx = await contract.setTestamentor(assetID, executor);
 
-  // resovles with executor address
-  return new Promise<string>((resolve, reject) => {
-    fetch(url + "/methods/setExecutor", {
-      method: "POST",
-      body: postData,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(async (res) => {
-      if (res.status === 201) {
-        const data = await res.json();
-        const assetID = data.assetID;
-        const executor = data.executor;
-        console.log(
-          `Successfully set Executor for asset #${assetID}: ${executor}`
-        );
-        resolve(executor);
-      } else {
-        const error = await res.text();
-        reject(error);
-      }
-    });
-  });
+    console.log("Transaction sent, waiting for confirmation...", tx.hash);
+    const receipt = await tx.wait(); // Wait for transaction confirmation
+    console.log("Transaction confirmed:", receipt);
+
+    // Get the executor address from the event logs
+    const event = receipt.events?.find((e) => e.event === "TestamentorChosen");
+    const newExecutor = event?.args?.testamentor;
+
+    if (!newExecutor) {
+      throw new Error("Failed to retrieve executor from event logs.");
+    }
+
+    console.log(
+      `Successfully set Executor for asset #${assetID}: ${newExecutor}`
+    );
+    return newExecutor.toString();
+  } catch (error) {
+    console.error("Error setting executor:", error);
+    throw error;
+  }
 };
 
 export let setPassword: f_setPassword = function (
@@ -203,35 +220,20 @@ export let transferAsset: f_transferAsser = async function (
   inheritor: string,
   password_hash: string,
   self: LRLNode
-) {
-  const postData = JSON.stringify({
-    assetID,
-    inheritor,
-    password_hash,
-    sender: self.address,
-  });
+): Promise<[number, string]> {
+  try {
+    const tx = await contract.transferAsset(assetID, inheritor, password_hash);
 
-  return new Promise<[assetID: number, inheritor: string]>(
-    (resolve, reject) => {
-      fetch(url + "/methods/transferAsset", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: postData,
-      }).then(async (res) => {
-        if (res.status === 201) {
-          const data = await res.json();
-          const assetID = data.assetID;
-          const inheritor = data.inheritor;
-          resolve([assetID, inheritor]);
-        } else {
-          const error = await res.text();
-          reject(error);
-        }
-      });
-    }
-  );
+    console.log("Transaction sent, waiting for confirmation...", tx.hash);
+    const receipt = await tx.wait(); // Wait for confirmation
+    console.log("Transaction confirmed:", receipt);
+
+    console.log(`Asset #${assetID} successfully transferred to: ${inheritor}`);
+    return [assetID, inheritor];
+  } catch (error) {
+    console.error("Error transferring asset:", error);
+    throw error;
+  }
 };
 
 export let getPastEvents: f_getPastEvents = async function (

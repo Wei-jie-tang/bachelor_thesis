@@ -11,3 +11,13 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
+
+local network test:
+cd smartcontract
+npx hardhat clean
+npx hardhat compile
+npx hardhat node
+
+npx hardhat run scripts/deploy.js --network localhost
+public network test:
+change infura api key and metamask key

@@ -1,7 +1,7 @@
 /// User Input routes ///
 import express, { Router } from "express";
 import path from "path";
-import * as contractInterface from "../common/contract/dummy/interface";
+import * as contractInterface from "../common/contract/smart/interface";
 import Self from "../LRLNode";
 import { Asset } from "../Asset";
 import {
@@ -184,49 +184,6 @@ router.post("/methods/registerAsset", async (req, res, next) => {
 
   contractInterface.registerAsset({ IP, address, resources });
 });
-
-// .then(async (assetID: number) => {
-//   /// CHOOSE EXECUTORS (random)
-//   const executors = await chooseExecutors(numExecutors);
-//   executors.forEach(async (executor) => {
-//     await contractInterface.setExecutor(assetID, executor, Self);
-//   });
-
-//   /// CHOOSE INHERITOR (topsis)
-//   let inheritor;
-//   try {
-//     inheritor = await chooseInheritor(assetID);
-//     await contractInterface.setInheritor(assetID, inheritor, Self);
-//   } catch (err) {
-//     console.error(err);
-//   }
-
-//   /// MAIN ASSET PREPARATION ///
-//   new Asset(
-//     assetID,
-//     path.join(D_ASSET, "asset.jpg"),
-//     resources,
-//     executors
-//   )
-//     .encryptAsset(path.join(D_TMP, "asset"))
-//     .splitAsset(numExecutors)
-//     .sendFragments(executors)
-//     .createTestament(path.join(D_TMP, "testament"))
-//     .encryptTestament(path.join(D_TMP, "testament"))
-//     .sendTestament(inheritor)
-//     .splitKey(numExecutors, threshold, path.join(D_TMP, "shamir"))
-//     .sendKeyFragments(executors);
-//   /// START HEARTBEAT ///
-//   executors.forEach((executor) => {
-//     startHeartbeat(executor);
-//   });
-// })
-// /// SEND ERROR RESPONSE ///
-// .catch((err) => {
-//   res.status(424); // Failed Dependency
-//   res.statusMessage = err.message;
-//   res.send();
-// });
 
 router.post("/methods/setInheritor", (req, res, next) => {
   console.log(`Received request: setInheritor`);
