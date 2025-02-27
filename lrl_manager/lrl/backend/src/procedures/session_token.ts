@@ -4,6 +4,7 @@ import {
   decryptSessionToken,
 } from "../common/cryptography/encrypt_ecdh";
 import { loadECDHKeys } from "./ecdh_key";
+import crypto from "crypto";
 export function exchangeECDHKeys(
   testator: string,
   executors: string[],
@@ -69,11 +70,21 @@ export function encryptSessionTokens(
   ecdhKeys: { [key: string]: { publicKey: Buffer; privateKey: Buffer } }
 ): { [key: string]: string } {
   console.log("Encrypting session tokens...");
+  const roomId = crypto.randomBytes(16).toString("hex");
 
   let encryptedTokens: { [key: string]: string } = {};
   for (const node of [...executors, inheritor]) {
+    let role = "testator";
+    if (executors.includes(node)) role = "executor";
+    if (node === inheritor) role = "inheritor";
+    const payload = JSON.stringify({
+      user: node, // Address of the participant
+      room: roomId, // Shared room ID for WebRTC
+      role: role, // Role based on participant type
+      exp: Math.floor(Date.now() / 1000) + 3600, // Token expires in 1 hour
+    });
     encryptedTokens[node] = encryptSessionToken(
-      "session-token",
+      payload,
       ecdhKeys[node].publicKey, // Recipient's public key
       ecdhKeys[testator].privateKey // Testator's private key
     );
