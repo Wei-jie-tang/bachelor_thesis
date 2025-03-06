@@ -70,7 +70,7 @@ export function encryptSessionTokens(
   ecdhKeys: { [key: string]: { publicKey: Buffer; privateKey: Buffer } }
 ): { [key: string]: string } {
   console.log("Encrypting session tokens...");
-  const roomId = crypto.randomBytes(16).toString("hex");
+  const sessionId = crypto.randomBytes(16).toString("hex");
 
   let encryptedTokens: { [key: string]: string } = {};
   for (const node of [...executors, inheritor]) {
@@ -79,7 +79,7 @@ export function encryptSessionTokens(
     if (node === inheritor) role = "inheritor";
     const payload = JSON.stringify({
       user: node, // Address of the participant
-      room: roomId, // Shared room ID for WebRTC
+      session: sessionId, // Shared room ID for WebRTC
       role: role, // Role based on participant type
       exp: Math.floor(Date.now() / 1000) + 3600, // Token expires in 1 hour
     });
