@@ -1,0 +1,30 @@
+# Use Node.js official image
+FROM node:20
+
+# Set working directory
+WORKDIR /app
+
+# Install necessary system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3 \
+    python3-pip
+
+# Copy package files and install dependencies
+COPY package*.json ./
+
+# Install node-pre-gyp before npm install
+RUN npm install -g node-pre-gyp
+
+# Install project dependencies
+RUN npm install
+RUN npm install -g ts-node
+
+# Copy the rest of the server files
+COPY . .
+
+# Expose port
+EXPOSE 4000
+
+# Run the server
+CMD ["npm", "start"]

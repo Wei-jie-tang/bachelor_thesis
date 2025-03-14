@@ -89,33 +89,48 @@ app.post("/token_manage", async (req, res) => {
         docker-compose -f /app/lrl/compose.yaml up --build
       `;
 
+      exec(command);
+    } catch (err) {
+      await revokeDockerAccess();
+      res.status(500).json({ error: err.message });
+    }
+  } else if (action === "remove") {
+    try {
+      console.log("Attempting to remove the container...");
+      const startTime = Date.now();
+
+      const command = `
+      cd lrl &&
+      docker-compose -f /app/lrl/compose.yaml down
+    `;
+
       exec(command, (err, stdout, stderr) => {
         const endTime = Date.now();
         const elapsedTime = ((endTime - startTime) / 1000).toFixed(2);
+
         if (err) {
-          console.error("Docker Compose error:", stderr);
-          revokeDockerAccess();
-          return res
-            .status(500)
-            .json({ error: stderr, elapsedTime: `${elapsedTime} seconds` });
+          console.error("Error while removing container:", stderr);
+          return res.status(500).json({
+            error: stderr,
+            elapsedTime: `${elapsedTime} seconds`,
+          });
         }
 
-        console.log(stdout);
-        res.json({ message: "Docker Compose completed successfully." });
-
-        revokeDockerAccess();
-        console.log(
-          "Docker socket access revoked after nested container started."
-        );
+        console.log("Container removed successfully:\n", stdout);
+        res.json({
+          message: "Container removed successfully.",
+          elapsedTime: `${elapsedTime} seconds`,
+        });
       });
     } catch (err) {
-      await revokeDockerAccess();
+      console.error("Error while removing container:", err.message);
       res.status(500).json({ error: err.message });
     }
   } else {
     res.status(400).json({ error: "Invalid action." });
   }
 });
+
 app.listen(PORT, () => {
   console.log(`Container is running on http://localhost:${PORT}`);
 });

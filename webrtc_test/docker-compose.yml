@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  webrtc-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.server
+    ports:
+      - "4000:4000"
+    networks:
+      - webrtc-network
+
+  client1:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client
+    depends_on:
+      - webrtc-server
+    networks:
+      - webrtc-network
+
+  client2:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client
+    depends_on:
+      - webrtc-server
+    networks:
+      - webrtc-network
+
+  client3:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client
+    depends_on:
+      - webrtc-server
+    networks:
+      - webrtc-network
+
+  client4:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client
+    depends_on:
+      - webrtc-server
+    networks:
+      - webrtc-network
+
+  client5:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client
+    depends_on:
+      - webrtc-server
+    networks:
+      - webrtc-network
+
+networks:
+  webrtc-network:
+    driver: bridge
