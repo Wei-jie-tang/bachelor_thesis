@@ -23,6 +23,8 @@ CMD [ "pnpm", "start" ]
 FROM base AS backend
 COPY --from=build /prod/backend /prod/backend
 WORKDIR /prod/backend
+#RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir ./keys
 RUN mkdir ./tmp
 EXPOSE 8500

@@ -11,6 +11,6 @@
     "emitDeclarationOnly": false,
     "declaration": false
   },
-  "include": ["src/**/*.ts", "src/**/*.js"],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/routes/contract_methods.ts"],
   "exclude": ["src/**/dep_*", "src/**/*.dep.*"]
 }

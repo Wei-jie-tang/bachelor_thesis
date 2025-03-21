@@ -1,7 +1,7 @@
 import _ from "lodash";
 import express from "express";
 import selfRouter from "./routes/self";
-import contractRouter from "./routes/contract_methods";
+import contractRouter from "./routes/contract_methods.js";
 import eventListener from "./common/contract/dummy/routes/eventListener";
 import rsa from "./common/cryptography/rsa";
 

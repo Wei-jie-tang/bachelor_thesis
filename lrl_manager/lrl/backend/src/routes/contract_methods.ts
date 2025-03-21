@@ -20,6 +20,8 @@ import {
 } from "../common/constants";
 import { Resources } from "interface-types";
 
+import axios from "axios";
+
 import {
   chooseExecutors,
   chooseInheritor,
@@ -27,7 +29,65 @@ import {
 } from "../procedures/localMachine";
 
 const router: Router = express.Router();
+
 router.use(express.json());
+router.post("/methods/registerNode", async (req, res) => {
+  console.log("Received request: registerNode");
+  //startKademlia();
+  const IP = req.body.IP || "";
+  const addr = req.body.address;
+  const resources = {
+    CPU_pct: 100,
+    cores: parseInt(req.body.cores),
+    clockrate_GHz: parseFloat(req.body.speed),
+    RAM_GB: parseFloat(req.body.ram),
+    BW_utilization: 0,
+    RTT_ms: parseInt(req.body.rtt),
+    BW: parseInt(req.body.bandwidth),
+  };
+  //TODO: Add back when integrating real contract
+
+  // contractInterface.subscribe(
+  // "NewNode",
+  // {
+  // filter: {
+  // addr: Self.addr,
+  // },
+  // },
+  // () => {
+  // Self.status.update("registered");
+  // console.log(
+  // Node Status updated: ${Self.status.get()}\nAddress: ${Self.addr}
+  // );
+  // }
+  // );
+  //  await axios.post("http://localhost:5001/store", {
+  //  key: addr,
+  //value: JSON.stringify(resources),
+  //  });
+
+  try {
+    const { privateKey, publicKey } = generateECDHKeyPair();
+    let storedKeys = loadECDHKeys();
+    storedKeys[addr] = {
+      publicKey: publicKey.toString("hex"),
+      privateKey: privateKey.toString("hex"),
+    };
+    saveECDHKeys(storedKeys);
+
+    // 🔹 Register Node using the real smart contract
+    contractInterface.registerNode({
+      IP,
+      addr,
+      resources,
+    });
+
+    // 🔹 Send response with transaction hash
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 router.post("/methods/registerAsset", async (req, res, next) => {
   console.log(`Received request: registerAsset`);
