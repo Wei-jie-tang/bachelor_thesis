@@ -19,7 +19,7 @@ import {
   STATUS_OK,
 } from "../common/constants";
 import { Resources } from "interface-types";
-
+const os = require("os");
 import axios from "axios";
 
 import {
@@ -34,7 +34,26 @@ router.use(express.json());
 router.post("/methods/registerNode", async (req, res) => {
   console.log("Received request: registerNode");
   //startKademlia();
-  const IP = req.body.IP || "";
+  let IP = req.body.IP || "";
+  if (!IP) {
+    // Attempt to get the system's IP address if it's missing from the body
+    const networkInterfaces = os.networkInterfaces();
+    for (const interfaceName in networkInterfaces) {
+      const interfaceInfo = networkInterfaces[interfaceName];
+      for (const info of interfaceInfo) {
+        if (info.family === "IPv4" && !info.internal) {
+          IP = info.address; // Get the first available external IPv4 address
+          break;
+        }
+      }
+      if (IP) break; // If an IP is found, break the loop
+    }
+  }
+  if (!IP) {
+    return res
+      .status(400)
+      .json({ error: "IP is required and could not be determined." });
+  }
   const addr = req.body.address;
   const resources = {
     CPU_pct: 100,
@@ -67,6 +86,20 @@ router.post("/methods/registerNode", async (req, res) => {
   //  });
 
   try {
+    await axios
+      .post("http://172.20.0.1:5002/register", {
+        ip: IP,
+      })
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    await axios.post("http://172.20.0.1:5002/store", {
+      key: addr,
+      value: IP,
+    });
     const { privateKey, publicKey } = generateECDHKeyPair();
     let storedKeys = loadECDHKeys();
     storedKeys[addr] = {
