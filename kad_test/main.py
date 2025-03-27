@@ -1,7 +1,7 @@
 import asyncio
 from node import KadNode
 from storage import store_data, get_data, store_multiple, get_multiple
-from refresh import refresh_data
+from kad_test.kad_service import refresh_data
 
 async def main():
     # Start Node 1 (Bootstrap Node)

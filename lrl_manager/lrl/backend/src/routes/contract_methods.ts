@@ -21,7 +21,7 @@ import {
 import { Resources } from "interface-types";
 const os = require("os");
 import axios from "axios";
-
+const { spawn } = require("child_process");
 import {
   chooseExecutors,
   chooseInheritor,
@@ -64,26 +64,6 @@ router.post("/methods/registerNode", async (req, res) => {
     RTT_ms: parseInt(req.body.rtt),
     BW: parseInt(req.body.bandwidth),
   };
-  //TODO: Add back when integrating real contract
-
-  // contractInterface.subscribe(
-  // "NewNode",
-  // {
-  // filter: {
-  // addr: Self.addr,
-  // },
-  // },
-  // () => {
-  // Self.status.update("registered");
-  // console.log(
-  // Node Status updated: ${Self.status.get()}\nAddress: ${Self.addr}
-  // );
-  // }
-  // );
-  //  await axios.post("http://localhost:5001/store", {
-  //  key: addr,
-  //value: JSON.stringify(resources),
-  //  });
 
   try {
     await axios
@@ -100,6 +80,7 @@ router.post("/methods/registerNode", async (req, res) => {
       key: addr,
       value: IP,
     });
+
     const { privateKey, publicKey } = generateECDHKeyPair();
     let storedKeys = loadECDHKeys();
     storedKeys[addr] = {

@@ -9,10 +9,12 @@ RUN apt-get update && apt-get install -y \
   libxrandr2 \
   libxcomposite1 \
   libxcursor1 \
-  libxi6 \ 
+  libxi6 \
+  
   && rm -rf /var/lib/apt/lists/*
 COPY ../packages packages
 RUN pnpm install -P
+
 #RUN pnpm install axios @types/axios
 COPY build/src/ .
 CMD [ "nodemon", "src/index.js" ]
