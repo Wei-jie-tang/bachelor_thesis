@@ -37,7 +37,9 @@ async def register_node(ip, address, given_ip):
 
 async def get_node_ip(address):
     """Retrieve the IP of a registered node."""
-    value = await node.get(address)
+    data = await node.get(address)
+    key, value = data.split(" → ")  # This will split the string at " → "
+    print(f"Key: {key}, Value: {value}")
     if value:
         print(json.dumps({"status": "found", "address": address, "ip": value}), flush=True)
     else:

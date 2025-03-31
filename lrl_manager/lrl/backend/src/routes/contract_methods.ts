@@ -67,8 +67,9 @@ router.post("/methods/registerNode", async (req, res) => {
 
   try {
     await axios
-      .post("http://172.20.0.1:5002/register", {
+      .post("http://host.docker.internal:5002/register_store", {
         ip: IP,
+        address: addr,
       })
       .then((response) => {
         console.log(response.data);
@@ -76,10 +77,10 @@ router.post("/methods/registerNode", async (req, res) => {
       .catch((error) => {
         console.error(error);
       });
-    await axios.post("http://172.20.0.1:5002/store", {
-      key: addr,
-      value: IP,
-    });
+    //await axios.post("http://host.docker.internal:5002/store", {
+    //key: addr,
+    //value: IP,
+    //});
 
     const { privateKey, publicKey } = generateECDHKeyPair();
     let storedKeys = loadECDHKeys();

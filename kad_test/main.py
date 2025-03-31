@@ -1,28 +1,27 @@
 import asyncio
-from node import KadNode
+from node import Node
 from storage import store_data, get_data, store_multiple, get_multiple
-from kad_test.kad_service import refresh_data
-
 async def main():
     # Start Node 1 (Bootstrap Node)
-    node1 = KadNode("node1",8468)
+    node1 = Node(8468)
     await node1.start()
 
     # Start Node 2 and connect to Node 1
-    node2 = KadNode("node2",8470)
+    node2 = Node(8470)
     await node2.start(("127.0.0.1", 8468))
-    node3 = KadNode("node3",8471)
+    await store_data(node2.node, "temperature2", "15°C")
+    node3 = Node(8471)
     await node3.start(("127.0.0.1", 8468))
-    node4 = KadNode("node4",8472)
+    node4 = Node(8472)
     await node4.start(("127.0.0.1", 8468))
-    node5 = KadNode("node5",8473)
+    node5 = Node( 8473)
     await node5.start(("127.0.0.1", 8468))
 
     # Store & Retrieve Data
     await store_data(node1.node, "temperature1", "25°C")
     await asyncio.sleep(2)  # Allow propagation
-    await store_data(node2.node, "temperature2", "15°C")
-    await asyncio.sleep(2)  
+    #await store_data(node2.node, "temperature2", "15°C")
+    #await asyncio.sleep(2)  
     await store_data(node3.node, "temperature3", "5°C")
     await asyncio.sleep(2)  
     await store_data(node4.node, "temperature4", "20°C")

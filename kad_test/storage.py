@@ -1,8 +1,8 @@
 import asyncio
 
-async def store_data(node, key, value):
+async def store_data(node ,key, value):
     """ Store a key-value pair in the network """
-    await node.set(key, value)
+    node.set(key, value)
     print(f"[Stored] {key} → {value}")
 
 async def get_data(node, key):

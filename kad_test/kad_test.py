@@ -1,69 +1,123 @@
 import asyncio
 import json
-import subprocess
-import time
+import socket
+import random
+from flask import Flask, request, jsonify
+from kademlia.network import Server
+from node import Node
+from storage import store_data, get_data
+app = Flask(__name__)
 
-def start_python_process():
-    """Start a new Python subprocess running the Kademlia node."""
-    return subprocess.Popen(
-        ["python3", "kademlia_service.py"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
+# Initialize Kademlia server
+node_instances = {}
+bootstrap_ip = None
+bootstrap_port= None
+async def start_node(ip):
+    """Start the Kademlia node and set bootstrap IP if needed."""
+    global bootstrap_ip, bootstrap_port
+   
 
-def send_command(process, command):
-    """Send JSON command to the Python process and return response."""
-    process.stdin.write(json.dumps(command) + "\n")
-    process.stdin.flush()
-    time.sleep(1)  # Wait for response
-    return process.stdout.readline().strip()
+    try:
+        
+        port = random.randint(30000, 40000)
+        node_name = f"node_{ip}_{port}" 
+        node = Node(port)  # Create a new node instance
+        node_instances[node_name] = node
+       
+        
+     
+        print(f"Node started on port {port}", flush=True)
 
-def main():
-    """Test Kademlia network."""
-    print(" Starting Bootstrap Node...")
-    bootstrap_process = start_python_process()
-    response = send_command(bootstrap_process, {"action": "start"})
-    print("🔹 Bootstrap Node:", response)
+        if bootstrap_ip is None:
+            bootstrap_ip = ip 
+             # Use the given IP as bootstrap
+            bootstrap_port = port 
+            print(f"Bootstrap node set to {bootstrap_ip}", flush=True)
+            print(json.dumps({"status": "bootstrap_created", "ip": bootstrap_ip, "port": port}), flush=True)
+            await asyncio.sleep(2) 
+        else:
+            try:
+                bootstrap_node = (bootstrap_ip, bootstrap_port) 
+                node.start(bootstrap_node)
 
-    bootstrap_info = json.loads(response)
-    bootstrap_ip = "127.0.0.1"
-    bootstrap_port = bootstrap_info.get("port")
+                await asyncio.sleep(2) 
+                print(f"Bootstrapped with {bootstrap_ip}:{bootstrap_port}", flush=True)
+                print(json.dumps({"status": "bootstrapped", "ip": bootstrap_ip, "port": bootstrap_port}), flush=True)
+            except Exception as e:
+                print(json.dumps({"error": str(e)}), flush=True)
+        return node_name
+    except Exception as e:
+        print(json.dumps({"error": str(e)}), flush=True)
 
-    print("\nStarting Node 1 and Registering...")
-    node1_process = start_python_process()
-    response = send_command(node1_process, {
-        "action": "register",
-        "ip": "192.168.1.101",
-        "address": "node1",
-        "bootstrap_ip": bootstrap_ip
-    })
-    print(" Node 1:", response)
 
-    print("\nStarting Node 2 and Registering...")
-    node2_process = start_python_process()
-    response = send_command(node2_process, {
-        "action": "register",
-        "ip": "192.168.1.102",
-        "address": "node2",
-        "bootstrap_ip": bootstrap_ip
-    })
-    print("🔹 Node 2:", response)
+async def register_node(ip, address,node_name):
+    """Ensure bootstrap, then store node address -> IP in the DHT."""
+    node = node_instances.get(node_name)
+    await store_data(node.node,address, ip)
+    print(json.dumps({"status": "registered", "address": address, "ip": ip}), flush=True)
 
-    print("\n Retrieving Node 1 IP...")
-    response = send_command(node2_process, {"action": "get", "address": "node1"})
-    print("🔹 Node 1 Lookup:", response)
+async def get_node_ip(address):
+    """Retrieve the IP of a registered node."""
+    if not node_instances:
+        return {"status": "error", "message": "No nodes available in the network"}
+    node = next(iter(node_instances.values()), None)
+    
 
-    print("\n Retrieving Node 2 IP...")
-    response = send_command(node1_process, {"action": "get", "address": "node2"})
-    print("🔹 Node 2 Lookup:", response)
+    if node is None:
+        return {"status": "error", "message": "No valid node found"}
+    value = get_data(node.node, address)
+    if value:
+        return {"status": "found", "address": address, "ip": value}
+    else:
+        return {"status": "not_found", "address": address}
 
-    # Cleanup: Terminate all processes
-    bootstrap_process.terminate()
-    node1_process.terminate()
-    node2_process.terminate()
-    print("\nTest Completed! Nodes Stopped.")
+@app.route("/register_store", methods=["POST"])
+def register_store():
+    """Handle node registration and store a key-value pair in the DHT."""
+    
+
+    data = request.get_json()
+    ip = data.get("ip")
+    address = data.get("address")
+    key = data.get("address")
+    value = data.get("ip")
+
+    if not ip or not address:
+        return jsonify({"error": "Missing required fields: 'ip', 'address'"}), 400
+    
+    node_name=asyncio.run(start_node(ip))
+
+    asyncio.run(register_node(ip, address,node_name))
+
+
+    return jsonify({"status": "registered_and_stored", "address": address, "ip": ip}), 200
+
+
+@app.route("/get", methods=["POST"])
+async def get():
+    """Retrieve a value from the DHT."""
+    data = request.get_json()  # Get the data from the request (this is synchronous)
+    address = data.get("address")  # Extract 'address' from the JSON request body
+    
+    if address:
+        # Await the result of get_node_ip, which should return a dictionary
+        value =  await get_node_ip(address)  # Await the async function call
+
+     
+        
+            # Check if the status is 'found', and return appropriate response
+        if value["status"] == "found":
+                return jsonify(value), 200
+        else:
+                return jsonify(value), 404
+        
+    else:
+        # If 'address' is not in the request, return a 400 error
+        return jsonify({"error": "Missing required field: 'address'"}), 400
 
 if __name__ == "__main__":
-    main()
+   
+    asyncio.run(start_node("0.0.0.0"))
+    asyncio.run(start_node("0.0.0.0"))
+    asyncio.run(start_node("0.0.0.0"))
+    app.run(host="0.0.0.0", port=5002, threaded=True)  # Start Flask HTTP server

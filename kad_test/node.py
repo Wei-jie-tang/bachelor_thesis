@@ -2,10 +2,10 @@ from flask import Flask, request, jsonify
 import asyncio
 from kademlia.network import Server
 
-class KadNode:
-    def __init__(self, node_id, port):
+class Node:
+    def __init__(self,  port):
         self.node = Server()
-        self.node_id = node_id 
+        #self.node_id = node_id 
         self.port = port
         
 
