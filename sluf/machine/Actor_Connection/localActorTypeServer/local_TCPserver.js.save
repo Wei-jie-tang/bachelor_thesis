@@ -1,0 +1,22 @@
+
+
+var net = require('net');
+
+
+// ******************* testing example of local actor http server ****************************
+
+const largeString = Array.from({ length: 128 }, () => Math.random().toString(36).charAt(2)).join('')
+ let i=0 
+var server = net.createServer(function(socket) {
+	var intervalle = setInterval(() => {
+       
+       
+        
+        socket.write(largeString);
+     }, 0.1);
+        
+
+    socket.on('data', (data)=>{console.log(data.toString())})
+	
+});
+server.listen(5000,'127.0.0.1',()=>{console.log('server is listening on port 5000')});

@@ -1,0 +1,9 @@
+{
+    "httpsServerPort":60000,
+    "requesterID": "machine1",
+    "httpsServerIP": "127.0.0.7",
+    "streaming": true
+    
+
+
+}

@@ -1,0 +1,5 @@
+For the classical code :  steps after configuring the configuration files and metadatafiles
+* start the local Actor (Actor_connection (client/server))for example node local_TCPserver.js
+* start the machines in seperated terminals classical/machine ( node main1 , node main2  for 2 parties )
+* start the external judge  classical/external_judge/node main
+

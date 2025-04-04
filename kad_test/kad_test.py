@@ -67,7 +67,8 @@ async def get_node_ip(address):
         return {"status": "error", "message": "No valid node found"}
     value = get_data(node.node, address)
     if value:
-        return {"status": "found", "address": address, "ip": value}
+        #return {"status": "found", "address": address, "ip": value}
+        return {value}
     else:
         return {"status": "not_found", "address": address}
 
@@ -105,11 +106,8 @@ async def get():
 
      
         
-            # Check if the status is 'found', and return appropriate response
-        if value["status"] == "found":
-                return jsonify(value), 200
-        else:
-                return jsonify(value), 404
+            
+        return jsonify(value), 404
         
     else:
         # If 'address' is not in the request, return a 400 error
