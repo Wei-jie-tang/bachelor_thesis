@@ -1,0 +1,1 @@
+Transaction: {"Requester":"machine1","Timestamp":"1743752486509","Data":"77","Signature":"MEYCIQDSL8eL1AP9EuWMjdYx38x48x2ojUiLbgXdY6IBJC4SAgIhAM4a2zDzMAZg99YjRLz9+cI1qAZcoeAFBjIq1uezOn5I"}

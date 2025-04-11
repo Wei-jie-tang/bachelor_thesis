@@ -29,7 +29,38 @@ import {
 } from "../procedures/localMachine";
 
 const router: Router = express.Router();
+//const pythonProcess = spawn("python3", ["/src/routes/kademlia_service.py"]);
+function sendCommandToPython(command, callback) {
+  console.log("Sending command to Python:", command);
 
+  const pythonProcess = spawn("python3", [
+    "/prod/backend/src/routes/kademlia_service.py",
+  ]);
+
+  // Capture Python's stdout output
+  pythonProcess.stdout.on("data", (data) => {
+    console.log(`Python Output: ${data}`);
+  });
+
+  // Capture Python's stderr output
+  pythonProcess.stderr.on("data", (data) => {
+    console.error(`Python Error: ${data}`);
+  });
+
+  // Handle Python process exit
+  pythonProcess.on("close", (code) => {
+    console.log(`Python process exited with code ${code}`);
+    if (code === 0) {
+      callback({ status: "started", node_name: "node_1" }); // Example response
+    } else {
+      callback({ status: "error", message: "Failed to run Python script" });
+    }
+  });
+
+  // Pass the command to the Python process through stdin
+  pythonProcess.stdin.write(JSON.stringify(command));
+  pythonProcess.stdin.end();
+}
 router.use(express.json());
 router.post("/methods/registerNode", async (req, res) => {
   console.log("Received request: registerNode");
@@ -65,8 +96,25 @@ router.post("/methods/registerNode", async (req, res) => {
     BW: parseInt(req.body.bandwidth),
   };
 
+  const command = {
+    action: "start_node", // Start node on IP address
+    ip: IP,
+    address: addr,
+  };
+  sendCommandToPython(command, (response) => {
+    if (response.status === "started_and_registered") {
+      res.status(200).json({ success: true, nodeName: response.node_name });
+    } else {
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: response.message || "Failed to start and register node.",
+        });
+    }
+  });
   try {
-    await axios
+    /*await axios
       .post("http://host.docker.internal:5002/register_store", {
         ip: IP,
         address: addr,
@@ -81,7 +129,7 @@ router.post("/methods/registerNode", async (req, res) => {
     //key: addr,
     //value: IP,
     //});
-
+*/
     const { privateKey, publicKey } = generateECDHKeyPair();
     let storedKeys = loadECDHKeys();
     storedKeys[addr] = {

@@ -10,10 +10,12 @@ RUN apt-get update && apt-get install -y \
   libxcomposite1 \
   libxcursor1 \
   libxi6 \
-  
+
   && rm -rf /var/lib/apt/lists/*
 COPY ../packages packages
 RUN pnpm install -P
+RUN pip install kademlia
+
 
 #RUN pnpm install axios @types/axios
 COPY build/src/ .

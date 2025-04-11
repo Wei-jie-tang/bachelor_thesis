@@ -1,0 +1,2 @@
+Transaction: {"Requester":"machine1","Timestamp":"1743756199660","Data":"888","Signature":"MEUCIESkJKikSUw57V7F15g5ycu1Oj0G0mPDkZvzgWGGifmcAiEAvqKY1O7BD3tmGcf+22R+mS5C5MKWhMDNvFeO8IQ1GWI="}
+ACK: {"Requester":"machine1","Replier":"machine2","Timestamp":"1743756199660","Signature":"MEQCID4LFpsFkP+rUfVj4TgmJZRTHCRWzxJALN8X04YBmy5ZAiAGwlParGER8psJ7SI8p+6C6y4y8/XYs07ugvvOiY5hqg=="}

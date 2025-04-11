@@ -23,10 +23,16 @@ CMD [ "pnpm", "start" ]
 FROM base AS backend
 COPY --from=build /prod/backend /prod/backend
 WORKDIR /prod/backend
-
+# Install Python only for backend
+RUN apt-get update && apt-get install -y \
+  python3 \
+  python3-pip \
+  && rm -rf /var/lib/apt/lists/*
+RUN pip install kademlia flask --break-system-packages
 
 RUN mkdir ./keys
 RUN mkdir ./tmp
+RUN python3 --version
 EXPOSE 8500
 CMD [ "pnpm", "start" ]
 
